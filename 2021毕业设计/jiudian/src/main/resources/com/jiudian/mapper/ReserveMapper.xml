@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jiudian.mapper.ReserveMapper">
+
+	<select id="select" resultType="java.util.Map" parameterType="java.util.Map">
+		select *,id as sid from reserve
+		<where>
+			<if test="sum!= null and sum !=''">
+				AND sum='${sum}'
+			</if>
+			<if test="name!= null and name !=''">
+				AND name='${name}'
+			</if>
+			<if test="number!= null and number !=''">
+				AND number=${number}
+			</if>
+			<if test="phone!= null and phone !=''">
+				AND phone=${phone}
+			</if>
+			<if test="reserve_day!= null and reserve_day !=''">
+				AND reserve_day='${reserve_day}'
+			</if>
+			<if test="check_day1!= null and check_day1 !=''">
+				AND check_day1=${check_day1}
+			</if>
+			<if test="check_day2!= null and check_day2 !=''">
+				AND check_day2=${check_day2}
+			</if>
+			<if test="money!= null and money !=''">
+				AND money=${money}
+			</if>
+
+		</where>
+	</select>
+
+	<update id="edit"  parameterType="java.util.Map">
+		update reserve set sum='${sum}',name='${name}',number='${number}',phone='${phone}',reserve_day='${reserve_day}',check_day1='${check_day1}',check_day2='${check_day2}',money='${money}',status='${status}' where id='${id}'
+	</update>
+
+	<delete id="delete" parameterType="java.util.Map">
+		DELETE FROM reserve WHERE id=${id};
+	</delete>
+
+    <insert id="add" parameterType="java.util.Map">
+        INSERT INTO reserve(id,sum,name,number,phone,reserve_day,check_day1,check_day2,money) VALUE(DEFAULT,'${sum}','${name}','${number}','${phone}','${reserve_day}','${check_day1}','${check_day2}','${money}');
+    </insert>
+
+
+	<select id="selectByid" resultType="java.util.Map" parameterType="java.util.Map">
+		select * from reserve where id=#{id}
+	</select>
+</mapper>

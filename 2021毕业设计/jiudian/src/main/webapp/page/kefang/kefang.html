@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>酒店管理系统</title>
+	<link rel="stylesheet" type="text/css" href="../../easyui/themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="../../easyui/themes/icon.css">
+	<script type="text/javascript" src="../../easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../../easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="../../easyui/locale/easyui-lang-zh_CN.js"></script>
+	<style>
+		#grid{
+			display: block;
+			height: 400px;
+			border:1px solid red;
+		}
+		.fitem{
+			margin-bottom: 20px;
+		}
+	</style>
+	<script type="text/javascript">
+		function a(){
+            var row = $('#grid').datagrid('getSelecteds');
+            console.table(row);
+            if (row){
+                alert('ID:'+row.id+","+row.sum);
+            }
+		}
+        function newKefang(){
+            $('#dlg').dialog('open').dialog('setTitle','添加客房');
+            $('#fm').form('clear');
+            url = 'http://localhost:8080/kefang/add';
+            var row = $('#dg').datagrid('getSelected');
+
+        }
+        function editKefang() {
+            var row = $('#grid').datagrid('getSelected');
+            if (row){
+                $('#dlg1').dialog('open').dialog('setTitle','修改客房信息');
+                $('#fm1').form('load',row);
+                $('#grid').datagrid('clearSelections');
+            }else{
+                $.messager.show({    // show error message
+                    title: '提示',
+                    msg: '请选择一条数据！'
+                });
+            }
+        }
+        function save1(){
+            $('#fm').form('submit',{
+                url: 'http://localhost:8080/kefang/add',
+                onSubmit: function(){
+                    return $(this).form('enableValidation').form('validate');
+                },
+                success: function(result){
+                    var result = eval('('+result+')');
+                    if (result.errorMsg){
+                        $.messager.show({
+                            title: 'Error',
+                            msg: result.errorMsg
+                        });
+                    } else {
+                        $.messager.show({    // show error message
+                            title: '提示',
+                            msg: '添加成功'
+                        });
+                        $('#dlg').dialog('close');        // close the dialog
+                        $('#grid').datagrid('reload');    // reload the user data
+                    }
+                }
+            });
+        }
+        function selectBy(){
+            $('#grid').datagrid('load',{
+                sum:$("#sum").val(),
+				window:$("#window").val(),
+				level:$("#level").val(),
+                type:$("#type").val(),
+                money1:$("#money1").val(),
+                money2:$("#money2").val(),
+            });
+		}
+        function save2(){
+            $('#fm1').form('submit',{
+                url: 'http://localhost:8080/kefang/edit',
+                onSubmit: function(){
+                    return $(this).form('enableValidation').form('validate');
+                },
+                success: function(result){
+                    var result = eval('('+result+')');
+                    if (result.errorMsg){
+                        $.messager.show({
+                            title: 'Error',
+                            msg: result.errorMsg
+                        });
+                    } else {
+                        $.messager.show({    // show error message
+                            title: '提示',
+                            msg: '修改成功'
+                        });
+                        $('#dlg1').dialog('close');        // close the dialog
+                        $('#grid').datagrid('reload');    // reload the user data
+                    }
+                }
+            });
+        }
+        function destroyKefang(){
+            var row = $('#grid').datagrid('getSelected');
+            if (row){
+                $.messager.confirm('Confirm','确定删除吗？',function(r){
+                    if (r){
+                        $.post('http://localhost:8080/kefang/delete',{id:row.id},function(result){
+                            if (result.success=="1"){
+                                $.messager.show({    // show error message
+                                    title: '提示',
+                                    msg: '删除成功'
+                                });
+                                $('#grid').datagrid('clearSelections');
+                                $('#grid').datagrid('reload');    // reload the user data
+
+                            } else {
+                                $.messager.show({    // show error message
+                                    title: 'Error',
+                                    msg: result.errorMsg
+                                });
+                            }
+                        },'json');
+                    }
+                });
+
+            }else{
+                $.messager.show({    // show error message
+                    title: '提示',
+                    msg: '请选择一条数据！'
+                });
+            }
+        }
+
+        $(function(){
+            $('.easyui-textbox').numberbox({
+                min:0,
+                precision:0
+            });
+            $('#grid').datagrid( {
+                border : false,
+                //singleSelect:false,
+				//height:150,
+                rownumbers : true,
+                pageList: [10,15,20],//选择一页显示多少数据
+                pagination : true,//在DataGrid控件底部显示分页工具栏。
+                columns :[ [ {
+                    field:'ck',
+					title:'w',
+                    checkbox:"true",
+
+                },{
+                    field : 'id',//简单的测试字段
+                    title : 'id',
+                    width : 30,
+                    align : 'center',
+                    hidden:true
+                }, {
+                    field : 'sum',
+                    title : '房间号',
+                    width : 120,
+                    align : 'center'
+                },{
+                    field : 'type',
+                    title : '房间类型',
+                    width : 120,
+                    align : 'center',
+                    formatter : function(type) {
+                        if(type=="0"){
+                            return "单人间";
+						}else if(type=="1"){
+                            return "双人间";
+						}else if(type=="2"){
+                            return "大床房";
+                        }else if(type=="3"){
+                            return "家庭房";
+                        }else if(type=="4"){
+                            return "套房";
+                        }
+                    }
+                },{
+                    field : 'level',
+                    title : '等级',
+                    width : 120,
+                    align : 'center',
+                    formatter : function(level) {
+                        if(level=="0"){
+                            return "特价间";
+                        }else if(level=="1"){
+                            return "标准间";
+                        }else if(level=="2"){
+                            return "高级间";
+                        }else if(level=="3"){
+                            return "商务间";
+                        }else if(level=="4"){
+                            return "豪华间";
+                        }else if(level==""){
+                            return "";
+                        }
+                    }
+                },{
+                    field : 'window',
+                    title : '窗户',
+                    width : 120,
+                    align : 'center',
+                    formatter : function(window) {
+                        if(window=="0"){
+                            return "无窗";
+                        }else if(window=="1"){
+                            return "有窗";
+                        }else if(window=="2"){
+                            return "有窗（标准）";
+                        }else if(window=="3"){
+                            return "有窗（大窗）";
+                        }else if(window=="4"){
+                            return "有窗（落地）";
+                        }
+                    }
+                },{
+                    field : 'money',
+                    title : '价格',
+                    width : 120,
+                    align : 'center',
+                },{
+                    field : 'clean',
+                    title : '清洁',
+                    width : 120,
+                    align : 'center',
+                    formatter : function(clean) {
+                        if(clean=="0"){
+                            return "已清洁";
+                        }else if(clean=="1"){
+                            return "未清洁";
+                        }
+                    }
+                },{
+                    field : 'size',
+                    title : '房间大小',
+                    width : 120,
+                    align : 'center',
+                    formatter : function(size) {
+                        return size+"㎡";
+                    }
+                }
+
+                ] ],
+                url :"http://localhost:8080/kefang/select",          //取值的url地址
+                idField : 'id'
+            });
+        });
+	</script>
+</head>
+
+<body>
+<div>
+	<div id="toolbar">
+		<a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newKefang()">添加</a>
+		<a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editKefang()">修改</a>
+        <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="destroyKefang()">删除</a><br>
+		房间号：<input class="easyui-textbox" id="sum" style="width:100px">
+		房间类型：
+		<select class="easyui-combobox" editable="false" id="type" data-options="panelHeight:'auto'"   style="width:120px">
+			<option value=""></option>
+			<option value="0">单人间</option>
+			<option value="1">双人间</option>
+			<option value="2">大床房</option>
+			<option value="3">家庭房</option>
+			<option value="4">套房</option>
+		</select>
+		等级：
+		<select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" id="level"  style="width:120px">
+			<option value=""></option>
+			<option value="0">特价间</option>
+			<option value="1">标准间</option>
+			<option value="2">高级间</option>
+			<option value="3">商务间</option>
+			<option value="4">豪华间</option>
+		</select>
+		窗户：
+		<select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" id="window" style="width:120px">
+			<option value=""></option>
+			<option value="0">无窗</option>
+			<option value="1">暗窗</option>
+			<option value="2">有窗（标准）</option>
+			<option value="3">有窗（大窗）</option>
+			<option value="4">有窗（落地）</option>
+		</select>
+
+		价格区间：从<input class="easyui-textbox" id="money1" style="width:60px">到
+		<input class="easyui-textbox" id="money2" style="width:60px">
+        <a href="#" class="easyui-linkbutton" iconCls="icon-search" plain="true" onclick="selectBy()">查询</a>
+	</div>
+
+	<table id="grid" class="easyui-datagrid" title="查询结果" iconCls="icon-tip" style="height:425px">
+    </table>
+
+
+    <!-- 弹出框 -->
+	<div id="dlg" class="easyui-dialog" style="width:600px;height:500px;padding:30px 60px" closed="true" buttons="#dlg-buttons">
+	<form id="fm" class="easyui-form" method="post" data-options="novalidate:true">
+		<div class="fitem">
+			<input class="easyui-textbox" name="sum" style="width:350px"  data-options="validType:'length[4,4]',label:'房间号:',required:true">
+		</div>
+		<div class="fitem">
+            <select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" name="type" label="房间类型:" style="width:350px">
+                <option value="0">单人间</option>
+                <option value="1">双人间</option>
+                <option value="2">大床房</option>
+                <option value="3">家庭房</option>
+                <option value="4">套房</option>
+				<option value=""></option>
+            </select>
+		</div>
+        <div class="fitem">
+            <select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" name="level" label="等级:" style="width:350px">
+                <option value="0">特价间</option>
+                <option value="1">标准间</option>
+                <option value="2">高级间</option>
+                <option value="3">商务间</option>
+                <option value="4">豪华间</option>
+				<option value=""></option>
+            </select>
+        </div>
+        <div class="fitem">
+            <select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" name="window" label="窗户:" style="width:350px">
+                <option value="0">无窗</option>
+                <option value="1">暗窗</option>
+                <option value="2">有窗（标准）</option>
+				<option value="3">有窗（大窗）</option>
+				<option value="4">有窗（落地）</option>
+				<option value=""></option>
+            </select>
+        </div>
+		<div class="fitem">
+			<input class="easyui-textbox" name="money" style="width:350px" data-options="label:'价格:',required:true">
+		</div>
+		<div class="fitem">
+			<select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" name="clean" label="清洁:" style="width:350px">
+				<option value="0">已清洁</option>
+				<option value="1">未清洁</option>
+				<option value=""></option>
+			</select>
+		</div>
+		<div class="fitem">
+			<input class="easyui-textbox" name="size" style="width:350px" data-options="label:'大小:'">
+		</div>
+	</form>
+</div>
+
+<div id="dlg-buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" onclick="save1()" style="width:90px">保存</a>
+	<a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+</div>
+
+	<div id="dlg1" class="easyui-dialog" style="width:600px;height:500px;padding:30px 60px" closed="true" buttons="#dlg1-buttons">
+		<form id="fm1" class="easyui-form" method="post" data-options="novalidate:true">
+            <div class="fitem" style="display: none">
+                <input class="easyui-textbox" name="id" style="width:350px"  data-options="label:'id:'" type="hidden">
+            </div>
+			<div class="fitem">
+				<input class="easyui-textbox" name="sum" style="width:350px"  data-options="validType:'length[4,4]',label:'房间号:',required:true">
+			</div>
+            <div class="fitem">
+                <select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" name="type" label="房间类型:" style="width:350px">
+                    <option value="0">单人间</option>
+                    <option value="1">双人间</option>
+                    <option value="2">大床房</option>
+                    <option value="3">家庭房</option>
+                    <option value="4">套房</option>
+					<option value=""></option>
+                </select>
+            </div>
+            <div class="fitem">
+                <select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" name="level" label="等级:" style="width:350px">
+                    <option value="0">特价间</option>
+                    <option value="1">标准间</option>
+                    <option value="2">高级间</option>
+                    <option value="3">商务间</option>
+                    <option value="4">豪华间</option>
+					<option value=""></option>
+                </select>
+            </div>
+            <div class="fitem">
+                <select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" name="window" label="窗户:" style="width:350px">
+                    <option value="0">无窗</option>
+                    <option value="1">暗窗</option>
+                    <option value="2">有窗（标准）</option>
+                    <option value="3">有窗（大窗）</option>
+					<option value="4">有窗（落地）</option>
+					<option value=""></option>
+                </select>
+            </div>
+			<div class="fitem">
+				<input class="easyui-textbox" name="money" style="width:350px" data-options="label:'价格:',required:true">
+			</div>
+			<div class="fitem">
+				<select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" name="clean" label="清洁:" style="width:350px">
+					<option value="0">已清洁</option>
+					<option value="1">未清洁</option>
+					<option value=""></option>
+				</select>
+			</div>
+			<div class="fitem">
+				<input class="easyui-textbox" name="size" style="width:350px" data-options="label:'大小:'">
+			</div>
+		</form>
+	</div>
+
+	<div id="dlg1-buttons">
+		<a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" onclick="save2()" style="width:90px">保存</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg1').dialog('close')" style="width:90px">取消</a>
+	</div>
+
+
+</div>
+</body>
+</html>

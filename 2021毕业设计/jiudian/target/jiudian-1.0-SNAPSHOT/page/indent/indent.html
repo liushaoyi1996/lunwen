@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>酒店管理系统</title>
+	<link rel="stylesheet" type="text/css" href="../../easyui/themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="../../easyui/themes/icon.css">
+	<script type="text/javascript" src="../../easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../../easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="../../easyui/locale/easyui-lang-zh_CN.js"></script>
+	<style>
+		#grid{
+			display: block;
+			height: 400px;
+			border:1px solid red;
+		}
+		.fitem{
+			margin-bottom: 20px;
+		}
+		.datagrid-row-selected {
+			background-color:#00bbee;color:#fff;font-weight:bo			/*background-color:#6293BB;color:#fff;font-weight:bold;ld;
+*/
+		}
+	</style>
+	<script type="text/javascript">
+        function newPerson(){
+            $('#dlg').dialog('open').dialog('setTitle','添加预定');
+            $('#fm').form('clear');
+            url = 'http://localhost:8080/reserve/add';
+            var row = $('#dg').datagrid('getSelected');
+
+        }
+
+        function selectBy(){
+            $('#grid').datagrid('load',{
+                name:$("#name").val(),
+                sum:$("#sum").val(),
+                number:$("#number").val(),
+                phone:$("#phone").val(),
+                money:$("#money").val(),
+                reserve_day:$("#reserve_day").val(),
+
+            });
+        }
+
+        function destroyPerson(){
+            var row = $('#grid').datagrid('getSelected');
+            if (row){
+                $.messager.confirm('Confirm','确定删除吗？',function(r){
+                    if (r){
+                        $.post('http://localhost:8080/indent/delete',{id:row.id},function(result){
+                            if (result.success=="1"){
+                                $.messager.show({    // show error message
+                                    title: '提示',
+                                    msg: '删除成功'
+                                });
+                                $('#grid').datagrid('clearSelections');
+                                $('#grid').datagrid('reload');    // reload the user data
+
+                            } else {
+                                $.messager.show({    // show error message
+                                    title: 'Error',
+                                    msg: result.errorMsg
+                                });
+                            }
+                        },'json');
+                    }
+                });
+
+            }else{
+                $.messager.show({    // show error message
+                    title: '提示',
+                    msg: '请选择一条数据！'
+                });
+            }
+        }
+
+
+        $(function(){
+            $('.num').numberbox({
+                min:0,
+                precision:0
+            });
+            $('#grid').datagrid( {
+                singleSelect: true,
+                border : false,
+                rownumbers : true,
+                pageList: [10,15,20],//选择一页显示多少数据
+                pagination : true,//在DataGrid控件底部显示分页工具栏。
+                columns :[ [ {
+                    field:'ck',
+                    title:'w',
+                    checkbox:"true",
+
+                },{
+                    field : 'id',//简单的测试字段
+                    title : 'id',
+                    width : 30,
+                    align : 'center',
+                    hidden:true
+                }, {
+                    field : 'sum',
+                    title : '房间号',
+                    width : 100,
+                    align : 'center'
+                },{
+                    field : 'name',
+                    title : '顾客姓名',
+                    width : 100,
+                    align : 'center',
+                },{
+                    field : 'number',
+                    title : '身份证号码',
+                    width : 150,
+                    align : 'center'
+                },{
+                    field : 'phone',
+                    title : '手机号',
+                    width : 120,
+                    align : 'center'
+                },{
+                    field : 'reserve_day',
+                    title : '预定日期',
+                    width : 100,
+                    align : 'center',
+                    formatter: function (birthday) {
+                        if(birthday==null){
+                            return "";
+                        }
+                        var myDate=new Date(birthday);
+                        var year=myDate.getFullYear();
+                        var month=myDate.getMonth()+1;
+                        var day=myDate.getDate();
+                        return year+"-"+month+"-"+day;
+                    }
+                },{
+                    field : 'check_day1',
+                    title : '入住日期',
+                    width : 100,
+                    align : 'center',
+                    formatter: function (birthday) {
+                        if(birthday==null){
+                            return "";
+                        }
+                        var myDate=new Date(birthday);
+                        var year=myDate.getFullYear();
+                        var month=myDate.getMonth()+1;
+                        var day=myDate.getDate();
+                        return year+"-"+month+"-"+day;
+                    }
+                },{
+                    field : 'check_day2',
+                    title : '离开日期',
+                    width : 100,
+                    align : 'center',
+                    formatter: function (birthday) {
+                        if(birthday==null){
+                            return "";
+                        }
+                        var myDate=new Date(birthday);
+                        var year=myDate.getFullYear();
+                        var month=myDate.getMonth()+1;
+                        var day=myDate.getDate();
+                        return year+"-"+month+"-"+day;
+                    }
+                },{
+                    field : 'money',
+                    title : '定金',
+                    width : 100,
+                    align : 'center',
+                    formatter: function (id) {
+                        return id;
+
+                    }
+                }
+
+                ] ],
+                url :"http://localhost:8080/indent/select",          //取值的url地址
+                idField : 'id'
+            });
+
+        });
+	</script>
+</head>
+
+<body>
+<div>
+	<div id="toolbar">
+		<a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="destroyPerson()">删除</a><br>
+		房间号：<input class="easyui-textbox" id="sum" style="width:100px">
+		身份证号：<input class="easyui-textbox" id="number" style="width:150px">
+		姓名：<input class="easyui-textbox" id="name" style="width:100px">
+		手机号：<input class="easyui-textbox" id="phone" style="width:100px">
+		预定日期：<input class="easyui-datebox" id="reserve_day" style="width:180px">
+		定金：<input class="easyui-textbox" id="money" style="width:100px">
+		<a href="#" class="easyui-linkbutton" iconCls="icon-search" plain="true" onclick="selectBy()">查询</a>
+	</div>
+
+	<table id="grid" class="easyui-datagrid" title="查询结果" iconCls="icon-tip" style="height:425px">
+	</table>
+
+
+</div>
+</body>
+</html>

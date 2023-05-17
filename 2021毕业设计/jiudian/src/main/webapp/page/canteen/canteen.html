@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>酒店管理系统</title>
+	<link rel="stylesheet" type="text/css" href="../../easyui/themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="../../easyui/themes/icon.css">
+	<script type="text/javascript" src="../../easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../../easyui/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="../../easyui/locale/easyui-lang-zh_CN.js"></script>
+	<style>
+		#grid{
+			display: block;
+			height: 400px;
+			border:1px solid red;
+		}
+		.fitem{
+			margin-bottom: 20px;
+		}
+	</style>
+	<script type="text/javascript">
+        function newKefang(){
+            $('#dlg').dialog('open').dialog('setTitle','添加餐厅');
+            $('#fm').form('clear');
+            url = 'http://localhost:8080/canteen/add';
+            var row = $('#dg').datagrid('getSelected');
+        }
+        function editKefang() {
+            var row = $('#grid').datagrid('getSelected');
+            if (row){
+                $('#dlg1').dialog('open').dialog('setTitle','修改餐厅信息');
+                $('#fm1').form('load',row);
+                $('#grid').datagrid('clearSelections');
+                var myDate=new Date(row.birthday);
+                var year=myDate.getFullYear();
+                var month=myDate.getMonth()+1;
+                var day=myDate.getDate();
+                var bir= year+"-"+month+"-"+day;
+                $('#birthday2').datebox('setValue', bir);
+                $('#grid').datagrid('clearSelections');
+            }else{
+                $.messager.show({    // show error message
+                    title: '提示',
+                    msg: '请选择一条数据！'
+                });
+            }
+        }
+        function save1(){
+            $('#fm').form('submit',{
+                url: 'http://localhost:8080/canteen/add',
+                onSubmit: function(){
+                    return $(this).form('enableValidation').form('validate');
+                },
+                success: function(result){
+                    var result = eval('('+result+')');
+                    if (result.errorMsg){
+                        $.messager.show({
+                            title: 'Error',
+                            msg: result.errorMsg
+                        });
+                    } else {
+                        $.messager.show({    // show error message
+                            title: '提示',
+                            msg: '添加成功'
+                        });
+                        $('#dlg').dialog('close');        // close the dialog
+                        $('#grid').datagrid('reload');    // reload the user data
+                    }
+                }
+            });
+        }
+        function selectBy(){
+            $('#grid').datagrid('load',{
+                sum:$("#sum").val(),
+                type:$("#type").val(),
+				level:$("#level").val(),
+                style:$("#style").val(),
+                size:$("#size").val(),
+                ps:$("#ps").val()
+            });
+		}
+        function save2(){
+            $('#fm1').form('submit',{
+                url: 'http://localhost:8080/canteen/edit',
+                onSubmit: function(){
+                    return $(this).form('enableValidation').form('validate');
+                },
+                success: function(result){
+                    var result = eval('('+result+')');
+                    if (result.errorMsg){
+                        $.messager.show({
+                            title: 'Error',
+                            msg: result.errorMsg
+                        });
+                    } else {
+                        $.messager.show({    // show error message
+                            title: '提示',
+                            msg: '修改成功'
+                        });
+                        $('#dlg1').dialog('close');        // close the dialog
+                        $('#grid').datagrid('reload');    // reload the user data
+                    }
+                }
+            });
+        }
+        function destroyKefang(){
+            var row = $('#grid').datagrid('getSelected');
+            if (row){
+                $.messager.confirm('Confirm','确定删除吗？',function(r){
+                    if (r){
+                        $.post('http://localhost:8080/canteen/delete',{id:row.id},function(result){
+                            if (result.success=="1"){
+                                $.messager.show({    // show error message
+                                    title: '提示',
+                                    msg: '删除成功'
+                                });
+                                $('#grid').datagrid('clearSelections');
+                                $('#grid').datagrid('reload');    // reload the user data
+
+                            } else {
+                                $.messager.show({    // show error message
+                                    title: 'Error',
+                                    msg: result.errorMsg
+                                });
+                            }
+                        },'json');
+                    }
+                });
+
+            }else{
+                $.messager.show({    // show error message
+                    title: '提示',
+                    msg: '请选择一条数据！'
+                });
+            }
+        }
+
+        $(function(){
+            $('.easyui-textbox').numberbox({
+                min:0,
+                precision:0
+            });
+            $('#grid').datagrid( {
+                border : false,
+                //singleSelect:false,
+				//height:150,
+                rownumbers : true,
+                pageList: [10,15,20],//选择一页显示多少数据
+                pagination : true,//在DataGrid控件底部显示分页工具栏。
+                columns :[ [ {
+                    field:'ck',
+					title:'w',
+                    checkbox:"true",
+
+                },{
+                    field : 'id',//简单的测试字段
+                    title : 'id',
+                    width : 30,
+                    align : 'center',
+                    hidden:true
+                }, {
+                    field : 'sum',
+                    title : '餐厅号',
+                    width : 120,
+                    align : 'center'
+                },{
+                    field : 'type',
+                    title : '餐厅类型',
+                    width : 120,
+                    align : 'center',
+                    formatter : function(type) {
+                        if(type=="0"){
+                            return "小型";
+						}else if(type=="1"){
+                            return "中型";
+						}else if(type=="2"){
+                            return "大型";
+                        }else if(type=="3"){
+                            return "宴会厅";
+                        }else if(type=="4"){
+                            return "大型宴会厅";
+                        }
+                    }
+                },{
+                    field : 'level',
+                    title : '等级',
+                    width : 120,
+                    align : 'center',
+                    formatter : function(level) {
+                        if(level=="0"){
+                            return "经济";
+                        }else if(level=="1"){
+                            return "普通";
+                        }else if(level=="2"){
+                            return "商务";
+                        }else if(level=="3"){
+                            return "豪华";
+                        }
+                    }
+                },{
+                    field : 'style',
+                    title : '风格',
+                    width : 120,
+                    align : 'center',
+                    formatter : function(style) {
+                        if(style=="0"){
+                            return "普通";
+                        }else if(style=="1"){
+                            return "中式";
+                        }else if(style=="2"){
+                            return "欧式";
+                        }else if(style=="3"){
+                            return "典雅";
+                        }else if(style=="4"){
+                            return "简约";
+                        }else if(style=="5"){
+                            return "奢华";
+                        }
+                    }
+                },{
+                    field : 'size',
+                    title : '餐厅面积',
+                    width : 120,
+                    align : 'center',
+                    formatter : function(size) {
+                        return size+"㎡";
+                    }
+                },{
+                    field : 'ps',
+                    title : '备注',
+                    width : 120,
+                    align : 'center'
+                }
+
+                ] ],
+                url :"http://localhost:8080/canteen/select",          //取值的url地址
+                idField : 'id'
+            });
+        });
+	</script>
+</head>
+
+<body>
+<div>
+	<div id="toolbar">
+		<a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="newKefang()">添加</a>
+		<a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="editKefang()">修改</a>
+        <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="destroyKefang()">删除</a><br>
+		餐厅号：<input class="easyui-textbox" id="sum" style="width:100px">
+		餐厅类型：
+		<select class="easyui-combobox" editable="false" id="type" data-options="panelHeight:'auto'"   style="width:120px">
+			<option value=""></option>
+			<option value="0">小型</option>
+			<option value="1">中型</option>
+			<option value="2">大型</option>
+			<option value="3">宴会厅</option>
+			<option value="4">大型宴会厅</option>
+		</select>
+		等级：
+		<select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" id="level"  style="width:120px">
+			<option value=""></option>
+			<option value="0">经济</option>
+			<option value="1">普通</option>
+			<option value="2">商务</option>
+			<option value="3">豪华</option>
+		</select>
+		装饰：
+		<select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" id="style"  style="width:120px">
+			<option value=""></option>
+			<option value="0">普通</option>
+			<option value="1">中式</option>
+			<option value="2">欧式</option>
+			<option value="3">典雅</option>
+			<option value="4">简约</option>
+			<option value="5">奢华</option>
+		</select>
+		餐厅大小：
+		<input class="easyui-textbox" id="size" style="width:100px">
+		备注：
+		<input class="easyui-textbox" id="ps" style="width:100px">
+
+        <a href="#" class="easyui-linkbutton" iconCls="icon-search" plain="true" onclick="selectBy()">查询</a>
+	</div>
+
+	<table id="grid" class="easyui-datagrid" title="查询结果" iconCls="icon-tip" style="height:425px">
+    </table>
+
+
+    <!-- 弹出框 -->
+	<div id="dlg" class="easyui-dialog" style="width:600px;height:500px;padding:30px 60px" closed="true" buttons="#dlg-buttons">
+	<form id="fm" class="easyui-form" method="post" data-options="novalidate:true">
+		<div class="fitem">
+			<input class="easyui-textbox" name="sum" style="width:350px"  data-options="validType:'length[4,4]',label:'餐厅号:',required:true">
+		</div>
+		<div class="fitem">
+            <select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" name="type" label="餐厅类型:" style="width:350px">
+				<option value=""></option>
+				<option value="0">小型</option>
+				<option value="1">中型</option>
+				<option value="2">大型</option>
+				<option value="3">宴会厅</option>
+				<option value="4">大型宴会厅</option>
+            </select>
+		</div>
+        <div class="fitem">
+            <select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" name="level" label="等级:" style="width:350px">
+				<option value=""></option>
+				<option value="0">经济</option>
+				<option value="1">普通</option>
+				<option value="2">商务</option>
+				<option value="3">豪华</option>
+            </select>
+        </div>
+        <div class="fitem">
+            <select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" name="style" label="装修:" style="width:350px">
+				<option value=""></option>
+				<option value="0">普通</option>
+				<option value="1">中式</option>
+				<option value="2">欧式</option>
+				<option value="3">典雅</option>
+				<option value="4">简约</option>
+				<option value="5">奢华</option>
+            </select>
+        </div>
+		<div class="fitem">
+			<input class="easyui-textbox" name="size" style="width:350px" data-options="label:'面积:'">
+		</div>
+		<div class="fitem">
+			<input class="easyui-textbox" name="ps" style="width:350px" data-options="label:'备注:'">
+		</div>
+	</form>
+</div>
+
+<div id="dlg-buttons">
+	<a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" onclick="save1()" style="width:90px">保存</a>
+	<a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">取消</a>
+</div>
+
+	<div id="dlg1" class="easyui-dialog" style="width:600px;height:500px;padding:30px 60px" closed="true" buttons="#dlg1-buttons">
+		<form id="fm1" class="easyui-form" method="post" data-options="novalidate:true">
+			<div class="fitem" style="display: none">
+				<input class="easyui-textbox" name="id" style="width:350px"  data-options="label:'id:'" type="hidden">
+			</div>
+			<div class="fitem">
+				<input class="easyui-textbox" name="sum" style="width:350px"  data-options="validType:'length[4,4]',label:'餐厅号:',required:true">
+			</div>
+			<div class="fitem">
+				<select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" name="type" label="餐厅类型:" style="width:350px">
+					<option value=""></option>
+					<option value="0">小型</option>
+					<option value="1">中型</option>
+					<option value="2">大型</option>
+					<option value="3">宴会厅</option>
+					<option value="4">大型宴会厅</option>
+				</select>
+			</div>
+			<div class="fitem">
+				<select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" name="level" label="等级:" style="width:350px">
+					<option value=""></option>
+					<option value="0">经济</option>
+					<option value="1">普通</option>
+					<option value="2">商务</option>
+					<option value="3">豪华</option>
+				</select>
+			</div>
+			<div class="fitem">
+				<select class="easyui-combobox" editable="false" data-options="panelHeight:'auto'" name="style" label="装修:" style="width:350px">
+					<option value=""></option>
+					<option value="0">普通</option>
+					<option value="1">中式</option>
+					<option value="2">欧式</option>
+					<option value="3">典雅</option>
+					<option value="4">简约</option>
+					<option value="5">奢华</option>
+				</select>
+			</div>
+			<div class="fitem">
+				<input class="easyui-textbox" name="size" style="width:350px" data-options="label:'面积:'">
+			</div>
+			<div class="fitem">
+				<input class="easyui-textbox" name="ps" style="width:350px" data-options="label:'备注:'">
+			</div>
+		</form>
+	</div>
+
+	<div id="dlg1-buttons">
+		<a href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" onclick="save2()" style="width:90px">保存</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg1').dialog('close')" style="width:90px">取消</a>
+	</div>
+
+
+</div>
+</body>
+</html>

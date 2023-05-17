@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jiudian.mapper.CanteenMapper">
+
+	<select id="select" resultType="java.util.Map" parameterType="java.util.Map">
+		select * from canteen
+		<where>
+			<if test="sum!= null and sum !=''">
+				AND sum=${sum}
+			</if>
+			<if test="type!= null and type !=''">
+				AND type=${type}
+			</if>
+			<if test="level!= null and level !=''">
+				AND level=${level}
+			</if>
+			<if test="style!= null and style !=''">
+				AND style=${style}
+			</if>
+			<if test="size!= null and size !=''">
+				AND size=${size}
+			</if>
+			<if test="ps!= null and ps !=''">
+				AND ps=${ps}
+			</if>
+		</where>
+		order by sum
+	</select>
+
+	<select id="selectBysum" resultType="java.util.Map" parameterType="java.util.Map">
+		select * from canteen
+		<where>
+			<if test="sum!= null and sum !=''">
+				AND sum=${sum}
+			</if>
+		</where>
+	</select>
+
+	<update id="edit"  parameterType="java.util.Map">
+		update canteen set sum=#{sum},type=#{type},level=#{level},style=#{style},size=#{size},ps=#{ps} where id=#{id}
+	</update>
+
+	<delete id="delete" parameterType="java.util.Map">
+		DELETE FROM canteen WHERE id=${id};
+	</delete>
+
+	<insert id="add" parameterType="java.util.Map">
+        INSERT INTO canteen(id,sum,type,level,style,size,ps) VALUE(DEFAULT,#{sum},#{type},#{level},#{style},#{size},#{ps});
+    </insert>
+</mapper>
